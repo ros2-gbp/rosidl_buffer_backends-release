@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cuda_buffer_backend</name>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <description>Pluginlib backend for CUDA-backed rosidl::Buffer transport,
   using CUDA IPC when available and CPU fallback otherwise.</description>
 
