@@ -91,6 +91,17 @@ if(NOT Torch_FOUND OR FORCE_BUILD_VENDOR_PKG)
     USE_SOURCE_PERMISSIONS
   )
 
+  # Pre-strip libtorch_cpu.so so dh_strip's objcopy doesn't fail on its
+  # non-standard ELF section table on the buildfarm.
+  install(CODE "
+    set(_lt \"\${CMAKE_INSTALL_PREFIX}/opt/${PROJECT_NAME}/lib/libtorch_cpu.so\")
+    if(EXISTS \"\${_lt}\" AND NOT IS_SYMLINK \"\${_lt}\")
+      execute_process(
+        COMMAND strip --strip-unneeded \"\${_lt}\"
+        OUTPUT_QUIET ERROR_QUIET)
+    endif()
+  ")
+
   ament_index_register_resource("vendor_packages" CONTENT "opt/${PROJECT_NAME}")
 
   # Install environment hooks so downstream binaries can locate the vendored
