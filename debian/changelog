@@ -1,0 +1,15 @@
+ros-rolling-torch-conversions (0.1.1-1trixie) trixie; urgency=high
+
+
+
+ -- "Yuankun Zhu" <yuankunz@nvidia.com>  Mon, 18 May 2026 07:00:00 -0000
+
+ros-rolling-torch-conversions (0.1.0-1trixie) trixie; urgency=high
+
+  * Merge pull request #1 <https://github.com/ros2/rosidl_buffer_backends/issues/1> from yuanknv/native_buffer_backends
+    Add cuda_buffer_backend and torch_buffer_backend for rosidl::Buffer
+  * Contributors: Yuankun Zhu, yuanknv
+
+ -- "Yuankun Zhu" <yuankunz@nvidia.com>  Wed, 13 May 2026 07:00:00 -0000
+
+
