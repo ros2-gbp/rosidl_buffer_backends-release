@@ -12,14 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Only point Torch_DIR at the vendored install tree if it actually exists.
-# When a system LibTorch was found at build time we skip the download,
-# so the vendor tree is not present and downstream consumers should
-# continue to find Torch via their own CMAKE_PREFIX_PATH.
+# Prefer the system LibTorch used to build this vendor package. If this package
+# installed a vendored LibTorch tree instead, fall back to that install tree.
+set(_@PROJECT_NAME@_system_torch_dir "@LIBTORCH_VENDOR_TORCH_DIR@")
+if(NOT Torch_DIR AND NOT "${_@PROJECT_NAME@_system_torch_dir}" STREQUAL "")
+  set(Torch_DIR "${_@PROJECT_NAME@_system_torch_dir}")
+  message(STATUS "@PROJECT_NAME@: using system LibTorch at '${Torch_DIR}'")
+endif()
+unset(_@PROJECT_NAME@_system_torch_dir)
+
 set(_@PROJECT_NAME@_vendor_torch_dir
-  "${@PROJECT_NAME@_DIR}/../../../opt/@PROJECT_NAME@/share/cmake/Torch")
+  "${PACKAGE_PREFIX_DIR}/opt/@PROJECT_NAME@/share/cmake/Torch")
 if(NOT Torch_DIR AND EXISTS "${_@PROJECT_NAME@_vendor_torch_dir}/TorchConfig.cmake")
   set(Torch_DIR "${_@PROJECT_NAME@_vendor_torch_dir}")
   message(STATUS "@PROJECT_NAME@: using vendored LibTorch at '${Torch_DIR}'")
 endif()
 unset(_@PROJECT_NAME@_vendor_torch_dir)
+
+# A CUDA-built LibTorch makes downstream find_package(Torch) enable the CUDA
+# language, which errors on CMake 3.28+ if CMAKE_CUDA_ARCHITECTURES is empty.
+# This package was built against the '@LIBTORCH_CUDA_VERSION@' variant, so only
+# seed the arch list for CUDA builds (in practice the JetPack PyTorch on Tegra,
+# or a CUDA x86 build); a CPU-only LibTorch never enables CUDA. Consumers that
+# set CMAKE_CUDA_ARCHITECTURES themselves take precedence.
+if(NOT "@LIBTORCH_CUDA_VERSION@" STREQUAL "cpu" AND NOT CMAKE_CUDA_ARCHITECTURES)
+  execute_process(
+    COMMAND python3 -c "import torch; print(';'.join(a.split('_',1)[-1] for a in torch.cuda.get_arch_list()))"
+    OUTPUT_VARIABLE _@PROJECT_NAME@_torch_arch_list
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _@PROJECT_NAME@_torch_arch_rc
+    ERROR_QUIET
+  )
+  if(_@PROJECT_NAME@_torch_arch_rc EQUAL 0 AND _@PROJECT_NAME@_torch_arch_list)
+    set(CMAKE_CUDA_ARCHITECTURES "${_@PROJECT_NAME@_torch_arch_list}")
+  endif()
+  unset(_@PROJECT_NAME@_torch_arch_list)
+  unset(_@PROJECT_NAME@_torch_arch_rc)
+endif()
+
