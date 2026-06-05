@@ -1,0 +1,12 @@
+Source: ros-lyrical-libtorch-vendor
+Section: misc
+Priority: optional
+Maintainer: "Yuankun Zhu" <yuankunz@nvidia.com>
+Build-Depends: debhelper (>= 9.0.0), ros-lyrical-ament-cmake, ros-lyrical-ament-cmake-vendor-package, ros-lyrical-ament-cmake-xmllint <!nocheck>, ros-lyrical-ament-lint-auto <!nocheck>, ros-lyrical-ament-lint-common <!nocheck>, ros-lyrical-ros-workspace
+Homepage: https://index.ros.org/p/libtorch_vendor/#lyrical
+Standards-Version: 3.9.2
+
+Package: ros-lyrical-libtorch-vendor
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-lyrical-ros-workspace
+Description: Vendor package that downloads and installs the pre-built LibTorch C++ distribution for torch_conversions and other packages.
