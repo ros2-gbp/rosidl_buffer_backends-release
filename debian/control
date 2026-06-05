@@ -1,0 +1,12 @@
+Source: ros-lyrical-cuda-buffer-backend
+Section: misc
+Priority: optional
+Maintainer: "Yuankun Zhu" <yuankunz@nvidia.com>
+Build-Depends: debhelper (>= 9.0.0), ros-lyrical-ament-cmake-auto, ros-lyrical-ament-cmake-gtest <!nocheck>, ros-lyrical-ament-lint-auto <!nocheck>, ros-lyrical-ament-lint-common <!nocheck>, ros-lyrical-cuda-buffer, ros-lyrical-cuda-buffer-backend-msgs, ros-lyrical-launch-ros <!nocheck>, ros-lyrical-launch-testing <!nocheck>, ros-lyrical-launch-testing-ament-cmake <!nocheck>, ros-lyrical-pluginlib, ros-lyrical-rclcpp <!nocheck>, ros-lyrical-rclcpp-components <!nocheck>, ros-lyrical-rcutils, ros-lyrical-rosidl-buffer-backend, ros-lyrical-rosidl-buffer-backend-registry, ros-lyrical-rosidl-runtime-cpp, ros-lyrical-rosidl-typesupport-cpp, ros-lyrical-sensor-msgs <!nocheck>, ros-lyrical-std-msgs <!nocheck>, ros-lyrical-ros-workspace
+Homepage: https://index.ros.org/p/cuda_buffer_backend/#lyrical
+Standards-Version: 3.9.2
+
+Package: ros-lyrical-cuda-buffer-backend
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-lyrical-cuda-buffer, ros-lyrical-cuda-buffer-backend-msgs, ros-lyrical-pluginlib, ros-lyrical-rcutils, ros-lyrical-rosidl-buffer-backend, ros-lyrical-rosidl-buffer-backend-registry, ros-lyrical-rosidl-runtime-cpp, ros-lyrical-rosidl-typesupport-cpp, ros-lyrical-ros-workspace
+Description: Pluginlib backend for CUDA-backed rosidl::Buffer transport, using CUDA IPC when available and CPU fallback otherwise.
