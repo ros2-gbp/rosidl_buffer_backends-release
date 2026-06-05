@@ -1,9 +1,0 @@
-<!-- Copyright 2026 Open Source Robotics Foundation, Inc.
-     Licensed under the Apache License, Version 2.0 -->
-<library path="cuda_buffer_backend">
-  <class name="cuda"
-         type="cuda_buffer_backend::CudaBufferBackend"
-         base_class_type="rosidl::BufferBackend">
-    <description>CUDA backend for buffer serialization with GPU memory support</description>
-  </class>
-</library>
