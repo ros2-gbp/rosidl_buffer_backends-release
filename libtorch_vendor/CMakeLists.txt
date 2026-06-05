@@ -51,9 +51,89 @@ if(LIBTORCH_VERSION STREQUAL "")
   endif()
 endif()
 
+# A CUDA-built LibTorch makes find_package(Torch) enable the CUDA language,
+# which errors on CMake 3.28+ if CMAKE_CUDA_ARCHITECTURES is empty. This only
+# applies to CUDA variants (in practice the JetPack PyTorch found on Tegra, or
+# a CUDA x86 build); a CPU-only LibTorch never enables CUDA, so skip it there.
+# Seed the arch list from torch when available, else a safe fallback.
+if(NOT LIBTORCH_CUDA_VERSION STREQUAL "cpu" AND NOT CMAKE_CUDA_ARCHITECTURES)
+  execute_process(
+    COMMAND python3 -c "import torch; print(';'.join(a.split('_',1)[-1] for a in torch.cuda.get_arch_list()))"
+    OUTPUT_VARIABLE _torch_arch_list
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _torch_arch_rc
+    ERROR_QUIET
+  )
+  if(_torch_arch_rc EQUAL 0 AND _torch_arch_list)
+    set(CMAKE_CUDA_ARCHITECTURES "${_torch_arch_list}")
+  endif()
+endif()
+
+# PyTorch publishes pre-built LibTorch archives for x86_64 only. For aarch64,
+# this vendor package has only been verified on the NVIDIA Tegra platform
+# (Jetson), where PyTorch/LibTorch ships with JetPack and must be reused rather
+# than downloaded. Tegra is identified by the kernel device-tree rather than by
+# aarch64 alone, since not all aarch64 systems are Tegra.
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _system_arch)
+if(_system_arch MATCHES "aarch64|arm64")
+  set(_is_aarch64 TRUE)
+  set(_is_tegra FALSE)
+  if(EXISTS "/proc/device-tree/compatible")
+    file(READ "/proc/device-tree/compatible" _dt_compat_hex HEX)
+    string(HEX "nvidia,tegra" _tegra_needle_hex)
+    if(_dt_compat_hex MATCHES "${_tegra_needle_hex}")
+      set(_is_tegra TRUE)
+    endif()
+  endif()
+else()
+  set(_is_aarch64 FALSE)
+  set(_is_tegra FALSE)
+endif()
+
+# Help find_package(Torch) locate a pip/system-installed LibTorch. This enables
+# "reuse if present" on x86_64 and is the primary discovery path on aarch64.
+if(NOT Torch_DIR)
+  execute_process(
+    COMMAND python3 -c "import torch, os; print(os.path.join(os.path.dirname(torch.__file__), 'share', 'cmake', 'Torch'))"
+    OUTPUT_VARIABLE _py_torch_dir
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE _py_torch_rc
+    ERROR_QUIET
+  )
+  if(_py_torch_rc EQUAL 0 AND EXISTS "${_py_torch_dir}/TorchConfig.cmake")
+    set(Torch_DIR "${_py_torch_dir}")
+    message(STATUS "${PROJECT_NAME}: discovered LibTorch via python3 at ${Torch_DIR}")
+  endif()
+endif()
+
 find_package(Torch QUIET)
 
-if(NOT Torch_FOUND OR FORCE_BUILD_VENDOR_PKG)
+if(Torch_FOUND AND NOT FORCE_BUILD_VENDOR_PKG)
+  message(STATUS "${PROJECT_NAME}: system LibTorch ${Torch_VERSION} found, skipping download")
+  if(_is_aarch64 AND NOT _is_tegra)
+    message(WARNING
+      "${PROJECT_NAME}: reusing the discovered LibTorch on a non-Tegra aarch64 "
+      "platform. This configuration has only been verified on NVIDIA Tegra "
+      "(Jetson) and is otherwise unverified.")
+  endif()
+  set(LIBTORCH_VENDOR_TORCH_DIR "${Torch_DIR}" CACHE PATH
+    "Torch_DIR found by libtorch_vendor")
+elseif(_is_tegra)
+  message(FATAL_ERROR
+    "${PROJECT_NAME}: no pre-built LibTorch archive is published for aarch64. "
+    "On the NVIDIA Tegra platform (Jetson / JetPack), LibTorch ships within the "
+    "JetPack PyTorch wheel, so the platform-provided installation must be reused. "
+    "Ensure the JetPack PyTorch is installed so that 'python3 -c \"import torch\"' "
+    "or find_package(Torch) can locate it, then rebuild. Set Torch_DIR explicitly "
+    "if it lives in a non-standard location.")
+elseif(_is_aarch64)
+  message(FATAL_ERROR
+    "${PROJECT_NAME}: aarch64 support is only verified on the NVIDIA Tegra "
+    "platform (Jetson), which was not detected here. No pre-built LibTorch "
+    "archive is published for aarch64, so install a compatible LibTorch and "
+    "ensure 'python3 -c \"import torch\"' or find_package(Torch) can locate it "
+    "(set Torch_DIR if needed), then rebuild.")
+else()
   if(Torch_FOUND)
     message(STATUS "${PROJECT_NAME}: forcing vendor build (FORCE_BUILD_VENDOR_PKG)")
   endif()
@@ -68,10 +148,12 @@ if(NOT Torch_FOUND OR FORCE_BUILD_VENDOR_PKG)
   string(CONCAT _url
     "https://download.pytorch.org/libtorch/${LIBTORCH_CUDA_VERSION}/"
     "${_archive_prefix}-${LIBTORCH_VERSION}%2B${LIBTORCH_CUDA_VERSION}.zip")
-  set(_archive "${CMAKE_CURRENT_BINARY_DIR}/libtorch.zip")
-  set(_extract_dir "${CMAKE_CURRENT_BINARY_DIR}/libtorch_extracted")
 
-  if(NOT EXISTS "${_extract_dir}/libtorch/share/cmake/Torch/TorchConfig.cmake")
+  set(_archive "${CMAKE_CURRENT_BINARY_DIR}/libtorch_archive")
+  set(_extract_dir "${CMAKE_CURRENT_BINARY_DIR}/libtorch_extracted")
+  set(_torch_root "${_extract_dir}/libtorch")
+
+  if(NOT EXISTS "${_torch_root}/share/cmake/Torch/TorchConfig.cmake")
     message(STATUS "${PROJECT_NAME}: downloading LibTorch ${LIBTORCH_VERSION}+${LIBTORCH_CUDA_VERSION}")
     message(STATUS "${PROJECT_NAME}: URL: ${_url}")
     file(DOWNLOAD "${_url}" "${_archive}" SHOW_PROGRESS STATUS _dl_status)
@@ -83,10 +165,10 @@ if(NOT Torch_FOUND OR FORCE_BUILD_VENDOR_PKG)
     file(ARCHIVE_EXTRACT INPUT "${_archive}" DESTINATION "${_extract_dir}")
     file(REMOVE "${_archive}")
   else()
-    message(STATUS "${PROJECT_NAME}: using cached LibTorch at ${_extract_dir}")
+    message(STATUS "${PROJECT_NAME}: using cached LibTorch at ${_torch_root}")
   endif()
 
-  install(DIRECTORY "${_extract_dir}/libtorch/"
+  install(DIRECTORY "${_torch_root}/"
     DESTINATION "opt/${PROJECT_NAME}"
     USE_SOURCE_PERMISSIONS
   )
@@ -94,7 +176,7 @@ if(NOT Torch_FOUND OR FORCE_BUILD_VENDOR_PKG)
   # Pre-strip libtorch_cpu.so so dh_strip's objcopy doesn't fail on its
   # non-standard ELF section table on the buildfarm.
   install(CODE "
-    set(_lt \"\${CMAKE_INSTALL_PREFIX}/opt/${PROJECT_NAME}/lib/libtorch_cpu.so\")
+    set(_lt \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/opt/${PROJECT_NAME}/lib/libtorch_cpu.so\")
     if(EXISTS \"\${_lt}\" AND NOT IS_SYMLINK \"\${_lt}\")
       execute_process(
         COMMAND strip --strip-unneeded \"\${_lt}\"
@@ -117,8 +199,6 @@ if(NOT Torch_FOUND OR FORCE_BUILD_VENDOR_PKG)
     "${ament_cmake_vendor_package_DIR}/templates/vendor_package.sh.in"
     "${ament_cmake_vendor_package_DIR}/templates/vendor_package.dsv.in"
   )
-else()
-  message(STATUS "${PROJECT_NAME}: system LibTorch ${Torch_VERSION} found, skipping download")
 endif()
 
 if(BUILD_TESTING)
@@ -129,3 +209,4 @@ endif()
 ament_package(
   CONFIG_EXTRAS_POST "libtorch_vendor-extras.cmake.in"
 )
+
