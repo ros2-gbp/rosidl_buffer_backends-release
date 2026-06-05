@@ -1,1 +1,1 @@
-{"base": "e1a7048", "parent": "debian/rolling/libtorch_vendor", "previous": "c8fd0be", "trim": "", "trimbase": ""}
+{"base": "257fab8", "parent": "debian/rolling/libtorch_vendor", "previous": "7d688c5", "trim": "", "trimbase": ""}
