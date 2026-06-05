@@ -1,0 +1,12 @@
+Source: ros-rolling-libtorch-vendor
+Section: misc
+Priority: optional
+Maintainer: "Yuankun Zhu" <yuankunz@nvidia.com>
+Build-Depends: debhelper (>= 9.0.0), ros-rolling-ament-cmake, ros-rolling-ament-cmake-vendor-package, ros-rolling-ament-cmake-xmllint <!nocheck>, ros-rolling-ament-lint-auto <!nocheck>, ros-rolling-ament-lint-common <!nocheck>, ros-rolling-ros-workspace
+Homepage: https://index.ros.org/p/libtorch_vendor/#rolling
+Standards-Version: 3.9.2
+
+Package: ros-rolling-libtorch-vendor
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-rolling-ros-workspace
+Description: Vendor package that downloads and installs the pre-built LibTorch C++ distribution for torch_conversions and other packages.
