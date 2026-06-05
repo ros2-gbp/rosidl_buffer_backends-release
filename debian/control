@@ -1,0 +1,13 @@
+Source: ros-rolling-tensor-msgs
+Section: misc
+Priority: optional
+Maintainer: "Yuankun Zhu" <yuankunz@nvidia.com>
+Build-Depends: debhelper (>= 9.0.0), ros-rolling-ament-cmake, ros-rolling-ament-lint-auto <!nocheck>, ros-rolling-ament-lint-common <!nocheck>, ros-rolling-rosidl-default-generators, ros-rolling-ros-workspace, ros-rolling-rosidl-typesupport-fastrtps-c, ros-rolling-rosidl-typesupport-fastrtps-cpp
+Homepage: https://index.ros.org/p/tensor_msgs/#rolling
+Standards-Version: 3.9.2
+
+Package: ros-rolling-tensor-msgs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-rolling-rosidl-default-runtime, ros-rolling-ros-workspace
+Description: DLPack-compatible Tensor message for publishing / subscribing to tensors.
+ Currently exposes only ExperimentalTensor (used internally; schema may change before stabilization).
