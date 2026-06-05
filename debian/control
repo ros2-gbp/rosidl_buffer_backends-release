@@ -1,0 +1,12 @@
+Source: ros-rolling-cuda-buffer-backend-msgs
+Section: misc
+Priority: optional
+Maintainer: "Yuankun Zhu" <yuankunz@nvidia.com>
+Build-Depends: debhelper (>= 9.0.0), ros-rolling-ament-cmake, ros-rolling-ament-lint-auto <!nocheck>, ros-rolling-ament-lint-common <!nocheck>, ros-rolling-rosidl-default-generators, ros-rolling-ros-workspace, ros-rolling-rosidl-typesupport-fastrtps-c, ros-rolling-rosidl-typesupport-fastrtps-cpp
+Homepage: https://index.ros.org/p/cuda_buffer_backend_msgs/#rolling
+Standards-Version: 3.9.2
+
+Package: ros-rolling-cuda-buffer-backend-msgs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-rolling-rosidl-default-runtime, ros-rolling-ros-workspace
+Description: CUDA buffer descriptor messages for rosidl::Buffer backend serialization.
