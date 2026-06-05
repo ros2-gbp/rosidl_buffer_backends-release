@@ -1,3 +1,32 @@
+## rosidl_buffer_backends (lyrical) - 0.1.2-1
+
+The packages in the `rosidl_buffer_backends` repository were released into the `lyrical` distro by running `/home/yuankunz/.local/bin/bloom-release --rosdistro lyrical --track lyrical rosidl_buffer_backends` on `Fri, 05 Jun 2026 23:58:13 -0000`
+
+These packages were released:
+- `cuda_buffer`
+- `cuda_buffer_backend`
+- `cuda_buffer_backend_msgs`
+- `libtorch_vendor`
+- `tensor_msgs`
+- `torch_conversions`
+
+Version of package(s) in repository `rosidl_buffer_backends`:
+
+- upstream repository: https://github.com/ros2/rosidl_buffer_backends.git
+- release repository: https://github.com/ros2-gbp/rosidl_buffer_backends-release.git
+- rosdistro version: `0.1.1-1`
+- old version: `0.1.1-1`
+- new version: `0.1.2-1`
+
+Versions of tools used:
+
+- bloom version: `0.14.3`
+- catkin_pkg version: `1.1.0`
+- rosdep version: `0.21.0`
+- rosdistro version: `1.0.1`
+- vcstools version: `0.1.42`
+
+
 ## rosidl_buffer_backends (rolling) - 0.1.2-1
 
 The packages in the `rosidl_buffer_backends` repository were released into the `rolling` distro by running `/home/yuankunz/.local/bin/bloom-release --rosdistro rolling --track rolling rosidl_buffer_backends` on `Fri, 05 Jun 2026 23:56:53 -0000`
